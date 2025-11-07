@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 from src.prediction import train_and_predict
 
+
 def show(df_harian):
     # =============================
     # 🎨 STYLE HALAMAN & TABEL KECIL
@@ -11,8 +12,8 @@ def show(df_harian):
     <style>
     .custom-table {
         border-collapse: collapse;
-        width: 70%;                     /* <<< ukuran tabel dikecilkan */
-        font-size: 12px;                /* <<< teks lebih kecil */
+        width: 70%;
+        font-size: 12px;
         border-radius: 8px;
         overflow: hidden;
         box-shadow: 0px 2px 6px rgba(128,128,128,0.25);
@@ -25,20 +26,23 @@ def show(df_harian):
         background-color: rgb(0,0,205);
         color: rgb(255,255,255);
         text-align: center;
-        padding: 5px;                  /* <<< padding kecil */
+        padding: 5px;
         font-size: 11.5px;
         white-space: nowrap;
     }
     .custom-table td {
         border: 1px solid rgba(128,128,128,0.3);
         text-align: center;
-        padding: 4px;                  /* <<< padding kecil */
+        padding: 4px;
         color: rgb(50,50,50);
         font-size: 11.5px;
     }
     .custom-table tr:nth-child(even) {background-color: rgb(255,255,255);}
     .custom-table tr:nth-child(odd) {background-color: rgba(0,0,205,0.05);}
-    .custom-table tr:hover {background-color: rgba(34,139,34,0.1); transition: background-color 0.2s ease;}
+    .custom-table tr:hover {
+        background-color: rgba(34,139,34,0.1);
+        transition: background-color 0.2s ease;
+    }
     .custom-table {border: 1px solid rgba(128,128,128,0.25);}
     </style>
     """, unsafe_allow_html=True)
@@ -65,8 +69,8 @@ def show(df_harian):
     # =============================
     df_mingguan = (
         df_harian.groupby(df_harian["tanggal"].dt.to_period("W-SUN"))
-          .agg(jumlah_permohonan=("jumlah_permohonan", "sum"))
-          .reset_index()
+        .agg(jumlah_permohonan=("jumlah_permohonan", "sum"))
+        .reset_index()
     )
     df_mingguan["tanggal"] = df_mingguan["tanggal"].dt.start_time
 
