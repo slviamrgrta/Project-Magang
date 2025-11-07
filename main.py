@@ -5,7 +5,7 @@ import plotly.express as px
 import os
 import gdown
 from src.preprocessing import load_and_prepare_data
-from src.prediction import predict_future
+from src.prediction import train_and_predict
 from src.visualization import plot_interaktif
 
 # ======================================================
@@ -30,7 +30,7 @@ footer {visibility: hidden;}
 # ======================================================
 st.markdown("""
 <h1 style='text-align:center; color: rgb(0,0,205); margin-bottom:-15px;'>
-Aplikasi Prediksi Jumlah Permohonan
+PTSP BMKG Insight Dashboard
 </h1>
 """, unsafe_allow_html=True)
 
@@ -94,6 +94,9 @@ section[data-testid="stMarkdownContainer"] h3 {
 data_path = "data/tbl_permohonan_202507221101.csv"
 df_harian = load_and_prepare_data(data_path)
 
+# 🧹 Hapus 2 baris terakhir
+df_harian = df_harian.iloc[:-2]
+
 # ======================================================
 # 🧠 SIAPKAN MODEL NLP DARI GOOGLE DRIVE
 # ======================================================
@@ -140,3 +143,5 @@ elif menu_choice == "Prediksi Jumlah Permohonan":
 elif menu_choice == "Analisis Sentimen":
     import pages.sentimen as sentimen
     sentimen.show(df_harian)
+
+

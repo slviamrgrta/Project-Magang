@@ -10,11 +10,6 @@ def show(df_harian=None):
     # =============================
     st.markdown("""
     <style>
-    h1, h2, h3, h4 {
-        color: rgb(0,0,205);
-        font-family: "Segoe UI", sans-serif;
-        font-weight: 600;
-    }
     .divider {
         border: none;
         border-top: 1px solid rgba(0,0,205,0.2);
@@ -58,6 +53,27 @@ def show(df_harian=None):
         border-color: rgb(220,20,60);
         background-color: rgba(220,20,60,0.05);
     }
+
+    /* 🎨 Gaya tabel dengan header biru */
+    .dataframe-table thead tr th {
+        background-color: rgb(0,0,205) !important;
+        color: white !important;
+        font-weight: 700 !important;
+        text-align: center !important;
+        padding: 8px 4px !important;
+    }
+    .dataframe-table tbody tr td {
+        text-align: center !important;
+        background-color: white;
+        padding: 6px 4px !important;
+    }
+    .dataframe-table {
+        border-radius: 10px !important;
+        overflow: hidden !important;
+        box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
+        border-collapse: collapse !important;
+        width: 100%;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -71,10 +87,10 @@ def show(df_harian=None):
         font-weight: 700;                     
         font-family: 'Poppins', 'Segoe UI', sans-serif;
         font-size: 21px;
-        margin-top: -12px;
-        margin-bottom: 8px;  
+        margin-top: -15px;
+        margin-bottom: 20px;  
     ">
-    Analisis Sentimen
+    Halaman Prediksi 
     </h2>
     """, unsafe_allow_html=True)
 
@@ -153,7 +169,7 @@ def show(df_harian=None):
                         }
                         sentiment, css_class = label_map.get(pred, ("Tidak diketahui", "result-neutral"))
 
-                        # 🔹 Ukuran teks seragam di hasil
+                        # 🔹 Tampilkan hasil
                         st.markdown(f"""
                             <div class='result-box {css_class}'>
                                 <p style="font-size:15px; margin:4px 0;">
@@ -188,8 +204,8 @@ def show(df_harian=None):
         if uploaded_file:
             try:
                 df = pd.read_csv(uploaded_file)
-                st.write("📄 Pratinjau data:")
-                st.dataframe(df.head())
+                st.markdown("📄 Pratinjau data:")
+                st.markdown(df.head().to_html(index=False, classes='dataframe-table'), unsafe_allow_html=True)
             except Exception as e:
                 st.error(f"❌ Gagal membaca file CSV: {e}")
                 st.stop()
@@ -212,6 +228,14 @@ def show(df_harian=None):
                     df["Sentimen"] = df[text_column].apply(analyze_text)
                     st.success("✅ Analisis selesai!")
 
-                    st.dataframe(df.head(10))
+                    # 🔹 Tampilkan hasil dengan tabel biru
+                    st.markdown(df.head(10).to_html(index=False, classes='dataframe-table'), unsafe_allow_html=True)
+
                     csv = df.to_csv(index=False).encode("utf-8")
-                    st.download_button("⬇️ Unduh Hasil Analisis", csv, "hasil_sentimen.csv", "text/csv", use_container_width=True)
+                    st.download_button(
+                        "⬇️ Unduh Hasil Analisis",
+                        csv,
+                        "hasil_sentimen.csv",
+                        "text/csv",
+                        use_container_width=True
+                    )

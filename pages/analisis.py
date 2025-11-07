@@ -44,19 +44,7 @@ def show(df_harian):
     </style>
     """, unsafe_allow_html=True)
 
-    # --- Format Tabel untuk Tampilan ---
-    df_tampil = df_harian.copy()
-    df_tampil["tahun"] = df_tampil["tahun"].astype(str)
-    df_tampil["tanggal"] = pd.to_datetime(df_tampil["tanggal"]).dt.strftime("%d %b %Y")
-    df_tampil = df_tampil.rename(columns={
-        "tanggal":"Tanggal","jumlah_permohonan":"Jumlah","hari":"Hari","bulan":"Bulan","tahun":"Tahun",
-        "is_weekend":"Weekend?","is_holiday":"Holiday?","dayofweek":"Hari ke","quarter":"Quarter",
-        "jumlah_permohonan_lag10":"Lag10","jumlah_permohonan_lag20":"Lag20","jumlah_permohonan_lag30":"Lag30",
-        "permohonan_mean10":"Mean10","permohonan_std10":"Std10","permohonan_mean20":"Mean20","permohonan_std20":"Std20",
-        "permohonan_mean30":"Mean30","permohonan_std30":"Std30"
-    })
-
-    # --- Judul Data Historis (lebih rapat ke atas) ---
+    # --- Judul Data Historis ---
     st.markdown("""
     <h2 style="
         text-align: left; 
@@ -64,21 +52,61 @@ def show(df_harian):
         font-weight: 700;                     
         font-family: 'Poppins', 'Segoe UI', sans-serif;
         font-size: 21px;
-        margin-top: -25px;   /* dinaikkan lebih rapat */
+        margin-top: -25px;   
         margin-bottom: 0px;  
     ">
-    Data Historis
+    Data Historis Mingguan 
     </h2>
     """, unsafe_allow_html=True)
 
-    # --- Tabel Data Historis ---
-    st.markdown(df_tampil.tail(10).to_html(classes="custom-table", index=False), unsafe_allow_html=True)
+    # --- Baca file CSV mentah dan ubah menjadi agregasi mingguan ---
+    try:
+        df_raw = pd.read_csv("data/tbl_permohonan_202507221101.csv")
 
-    # --- Analisis Jumlah Permohonan per Tahun ---
+        # 🧹 Hapus 2 baris terakhir
+        df_raw = df_raw.iloc[:-2]
+
+        # Pastikan nama kolom seragam
+        df_raw = df_raw.rename(columns={
+            "tanggal_permohonan": "tanggal",
+            "id_jenis_layanan": "jumlah_permohonan"
+        })
+
+        # Ubah kolom tanggal jadi datetime
+        df_raw["tanggal"] = pd.to_datetime(df_raw["tanggal"], errors="coerce")
+
+        # ===== 🔹 Agregasi Mingguan =====
+        df_mingguan = (
+            df_raw.groupby(df_raw["tanggal"].dt.to_period("W-SUN"))
+            .agg(
+                jumlah_permohonan=("jumlah_permohonan", "sum"),
+                total_harga=("total_harga", "sum")
+            )
+            .reset_index()
+        )
+
+        # Ambil awal minggu sebagai tanggal representatif
+        df_mingguan["tanggal"] = df_mingguan["tanggal"].dt.start_time
+        df_mingguan = df_mingguan.rename(columns={"tanggal": "Tanggal", "jumlah_permohonan": "Jumlah Permohonan", "total_harga": "Total Harga"})
+
+        # Format tanggal
+        df_mingguan["Tanggal"] = df_mingguan["Tanggal"].dt.strftime("%d %b %Y")
+
+        # Tampilkan 10 minggu terakhir
+        st.markdown(df_mingguan.tail(10).to_html(classes="custom-table", index=False), unsafe_allow_html=True)
+
+    except Exception as e:
+        st.error(f"Gagal memuat data mentah: {e}")
+
+    # --- Analisis Jumlah Permohonan per Tahun (pakai df_harian dari parameter) ---
     df_harian["tanggal"] = pd.to_datetime(df_harian["tanggal"])
     df_harian["tahun"] = df_harian["tanggal"].dt.year
     df_harian["bulan"] = df_harian["tanggal"].dt.month
-    df_pertahun_bulan = df_harian.groupby(["tahun","bulan"])["jumlah_permohonan"].sum().reset_index()
+
+    df_pertahun_bulan = (
+        df_harian.groupby(["tahun", "bulan"])["jumlah_permohonan"].sum().reset_index()
+    )
+
     df_pertahun_bulan["bulan_nama"] = df_pertahun_bulan["bulan"].apply(
         lambda x: pd.to_datetime(str(x), format="%m").strftime("%b")
     )
@@ -97,9 +125,8 @@ def show(df_harian):
     </h2>
     """, unsafe_allow_html=True)
 
-    # --- Visualisasi ---
+    # --- Visualisasi tetap sama ---
     col1, col2 = st.columns([3,1])
-
     with col2:
         tahun_list = sorted(df_pertahun_bulan["tahun"].unique())
         selected_year = st.selectbox("Pilih Tahun:", tahun_list)
@@ -120,17 +147,14 @@ def show(df_harian):
             title=f"Jumlah Permohonan per Bulan Tahun {selected_year}"
         )
 
-        # --- Atur tampilan teks batang ---
         fig.update_traces(
             textposition="outside",
             texttemplate="%{text}",
             textfont=dict(color="rgb(50,50,50)", size=12)
         )
 
-        # --- Sumbu Y diperpanjang ---
-        y_max = df_tahun["jumlah_permohonan"].max() * 1.4  # diperbesar dari 1.15 ke 1.4
+        y_max = df_tahun["jumlah_permohonan"].max() * 1.4
 
-        # --- Layout ---
         fig.update_layout(
             height=420,
             margin=dict(l=80, r=60, t=70, b=40),
