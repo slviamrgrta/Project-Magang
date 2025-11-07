@@ -1,0 +1,12 @@
+# Abaikan file & folder besar
+*.pkl
+*.csv
+*.xlsx
+*.safetensors
+output/
+model_nlp/
+
+# Abaikan cache dan setting
+__pycache__/
+.vscode/
+*.log
