@@ -7,6 +7,9 @@ import gdown
 from src.preprocessing import load_and_prepare_data
 from src.prediction import train_and_predict
 from src.visualization import plot_interaktif
+import custom_pages.analisis as analisis
+import custom_pages.prediksi as prediksi
+import custom_pages.sentimen as sentimen
 
 # ======================================================
 # 🧭 KONFIGURASI HALAMAN
@@ -133,15 +136,15 @@ menu_choice = st.radio(
 # 🧩 TAMPILKAN HALAMAN SESUAI PILIHAN
 # ======================================================
 if menu_choice == "Analisis Data Historis":
-    import pages.analisis as analisis
+    import custom_pages.analisis as analisis
     analisis.show(df_harian)
 
 elif menu_choice == "Prediksi Jumlah Permohonan":
-    import pages.prediksi as prediksi
+    import custom_pages.prediksi as prediksi
     prediksi.show(df_harian)
 
 elif menu_choice == "Analisis Sentimen":
-    import pages.sentimen as sentimen
+    import custom_pages.sentimen as sentimen
     sentimen.show(df_harian)
 
 
